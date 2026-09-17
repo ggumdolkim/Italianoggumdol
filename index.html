@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="유튜브 영상으로 연습하는 초급 이탈리아어 문장 반복 학습기">
+  <meta name="theme-color" content="#17213a">
+  <title>Italiano Replay · Morning Routine</title>
+  <link rel="preconnect" href="https://www.youtube.com">
+  <link rel="preconnect" href="https://www.google.com">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2317213a'/%3E%3Cpath d='M21 18v28M21 32h22' stroke='%23fff' stroke-width='6' stroke-linecap='round'/%3E%3Ccircle cx='43' cy='32' r='6' fill='%23ff6b55'/%3E%3C/svg%3E">
+  <style>
+    :root {
+      --ink: #17213a;
+      --muted: #69738a;
+      --line: #dfe4ee;
+      --paper: #ffffff;
+      --canvas: #f4f6fb;
+      --blue: #246bfe;
+      --blue-soft: #eaf0ff;
+      --coral: #ff6b55;
+      --coral-soft: #fff0ed;
+      --shadow: 0 18px 55px rgba(23, 33, 58, .12);
+    }
+
+    * { box-sizing: border-box; }
+    html { color-scheme: light; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--canvas);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    button { font: inherit; }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(360px, 42vw) minmax(0, 1fr);
+    }
+
+    .player-panel {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      padding: 26px;
+      overflow-y: auto;
+      background:
+        radial-gradient(circle at 85% 12%, rgba(36, 107, 254, .20), transparent 32%),
+        linear-gradient(145deg, #111a30 0%, #17213a 60%, #1f2d4d 100%);
+      color: white;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .brand-name {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: .98rem;
+      font-weight: 800;
+      letter-spacing: -.02em;
+    }
+    .brand-mark {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 9px;
+      background: var(--coral);
+      box-shadow: 0 8px 20px rgba(255, 107, 85, .28);
+    }
+    .level {
+      padding: 6px 9px;
+      border: 1px solid rgba(255,255,255,.22);
+      border-radius: 999px;
+      color: rgba(255,255,255,.78);
+      font-size: .78rem;
+      font-weight: 700;
+    }
+
+    .title-block h1 {
+      margin: 0;
+      max-width: 560px;
+      font-size: clamp(1.65rem, 3vw, 2.65rem);
+      line-height: 1.08;
+      letter-spacing: -.045em;
+    }
+    .title-block p {
+      margin: 9px 0 0;
+      color: rgba(255,255,255,.58);
+      font-size: .92rem;
+    }
+
+    .video-shell {
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+      aspect-ratio: 16/9;
+      border-radius: 18px;
+      background: #05070d;
+      box-shadow: 0 20px 50px rgba(0,0,0,.35);
+    }
+    #player { width: 100%; height: 100%; }
+
+    .now-card {
+      min-height: 108px;
+      padding: 17px 18px;
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 16px;
+      background: rgba(255,255,255,.08);
+      backdrop-filter: blur(14px);
+    }
+    .now-label {
+      margin-bottom: 7px;
+      color: #91b3ff;
+      font-size: .76rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .now-it {
+      font-size: 1.12rem;
+      font-weight: 760;
+      line-height: 1.38;
+    }
+    .now-ko {
+      margin-top: 6px;
+      color: rgba(255,255,255,.63);
+      font-size: .9rem;
+      line-height: 1.45;
+    }
+    .idle { color: rgba(255,255,255,.48); font-weight: 500; }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 9px;
+    }
+    .control {
+      min-height: 44px;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 12px;
+      background: rgba(255,255,255,.08);
+      color: white;
+      cursor: pointer;
+      font-size: .87rem;
+      font-weight: 750;
+      transition: transform .16s ease, background .16s ease, border-color .16s ease;
+    }
+    .control:hover { transform: translateY(-1px); background: rgba(255,255,255,.13); }
+    .control:focus-visible { outline: 3px solid #91b3ff; outline-offset: 2px; }
+    .control[aria-pressed="true"] {
+      border-color: var(--coral);
+      background: var(--coral);
+      box-shadow: 0 10px 24px rgba(255,107,85,.20);
+    }
+    .control.speed[aria-pressed="true"] {
+      border-color: #7da5ff;
+      background: var(--blue);
+    }
+
+    .lesson-panel {
+      min-width: 0;
+      padding: 28px clamp(20px, 4vw, 52px) 46px;
+    }
+    .lesson-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 20px;
+      max-width: 900px;
+      margin: 0 auto 18px;
+    }
+    .lesson-head h2 {
+      margin: 0;
+      font-size: clamp(1.45rem, 2.5vw, 2rem);
+      letter-spacing: -.035em;
+    }
+    .lesson-head p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+    .counter {
+      flex: 0 0 auto;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: var(--blue-soft);
+      color: var(--blue);
+      font-size: .82rem;
+      font-weight: 800;
+    }
+
+    .sentences {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .sentence {
+      position: relative;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr) auto;
+      gap: 13px;
+      align-items: center;
+      padding: 15px 16px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--paper);
+      color: var(--ink);
+      text-align: left;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(23,33,58,.035);
+      transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease, background .16s ease;
+    }
+    .sentence:hover {
+      transform: translateY(-1px);
+      border-color: #b6c9f7;
+      box-shadow: 0 10px 24px rgba(23,33,58,.08);
+    }
+    .sentence:focus-visible { outline: 3px solid rgba(36,107,254,.35); outline-offset: 2px; }
+    .sentence.active {
+      border-color: var(--blue);
+      background: linear-gradient(135deg, #fff, #f3f6ff);
+      box-shadow: 0 12px 30px rgba(36,107,254,.14);
+    }
+    .number {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      background: #f0f3f8;
+      color: #7a8498;
+      font-size: .82rem;
+      font-weight: 850;
+    }
+    .sentence.active .number { background: var(--blue); color: white; }
+    .text-wrap { min-width: 0; }
+    .it {
+      display: block;
+      font-size: 1.05rem;
+      font-weight: 720;
+      line-height: 1.45;
+      transition: filter .18s ease, color .18s ease;
+    }
+    .ko {
+      display: block;
+      max-height: 60px;
+      margin-top: 5px;
+      overflow: hidden;
+      color: var(--muted);
+      font-size: .88rem;
+      line-height: 1.45;
+      opacity: 1;
+      transition: max-height .2s ease, margin .2s ease, opacity .18s ease;
+    }
+    .time {
+      color: #8b94a7;
+      font-size: .77rem;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    body.translation-off .ko { max-height: 0; margin-top: 0; opacity: 0; }
+    body.italian-hidden .it, body.italian-hidden .now-it:not(.idle) {
+      color: transparent;
+      text-shadow: 0 0 12px rgba(23,33,58,.34);
+      user-select: none;
+    }
+    body.italian-hidden .now-it:not(.idle) { text-shadow: 0 0 12px rgba(255,255,255,.46); }
+
+    .source {
+      max-width: 900px;
+      margin: 20px auto 0;
+      color: #8a93a5;
+      font-size: .78rem;
+      line-height: 1.5;
+    }
+    .source a { color: inherit; text-underline-offset: 3px; }
+
+    @media (max-width: 900px) {
+      .app { display: block; }
+      .player-panel {
+        position: sticky;
+        z-index: 10;
+        height: auto;
+        max-height: none;
+        padding: 14px 14px 16px;
+        gap: 11px;
+        border-radius: 0 0 22px 22px;
+        box-shadow: var(--shadow);
+      }
+      .brand { display: none; }
+      .title-block h1 { font-size: 1.18rem; }
+      .title-block p { display: none; }
+      .video-shell { max-height: 34vh; border-radius: 14px; }
+      .now-card { min-height: 76px; padding: 11px 13px; }
+      .now-label { margin-bottom: 4px; font-size: .68rem; }
+      .now-it { font-size: .96rem; }
+      .now-ko { margin-top: 3px; font-size: .8rem; }
+      .controls { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+      .control { min-height: 39px; padding: 5px; font-size: .75rem; }
+      .lesson-panel { padding: 22px 12px 36px; }
+      .lesson-head { align-items: center; padding: 0 4px; }
+      .lesson-head h2 { font-size: 1.3rem; }
+      .sentence { grid-template-columns: 36px minmax(0, 1fr); padding: 13px 12px; gap: 10px; }
+      .number { width: 34px; height: 34px; border-radius: 10px; }
+      .time { display: none; }
+      .it { font-size: 1rem; }
+      .ko { font-size: .84rem; }
+    }
+
+    @media (max-width: 520px) {
+      .lesson-head p { display: none; }
+      .counter { font-size: .75rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="player-panel" aria-label="영상 학습 플레이어">
+      <div class="brand">
+        <div class="brand-name"><span class="brand-mark">↻</span> Italiano Replay</div>
+        <span class="level">A0–A1</span>
+      </div>
+
+      <div class="title-block">
+        <h1>La mia routine mattutina</h1>
+        <p>Elisa’s Italian School · 선택 구간 01:00–03:52</p>
+      </div>
+
+      <div class="video-shell"><div id="player"></div></div>
+
+      <div class="now-card" aria-live="polite">
+        <div class="now-label">Now playing</div>
+        <div class="now-it idle" id="now-it">오른쪽에서 문장을 눌러 시작하세요.</div>
+        <div class="now-ko" id="now-ko"></div>
+      </div>
+
+      <div class="controls" aria-label="학습 설정">
+        <button class="control" id="repeat-btn" type="button" aria-pressed="false">↻ 반복 꺼짐</button>
+        <button class="control speed" id="speed-btn" type="button" aria-pressed="false">속도 1×</button>
+        <button class="control" id="translation-btn" type="button" aria-pressed="false">번역 가리기</button>
+        <button class="control" id="italian-btn" type="button" aria-pressed="false">이탈리아어 가리기</button>
+      </div>
+    </section>
+
+    <section class="lesson-panel" aria-labelledby="lesson-title">
+      <header class="lesson-head">
+        <div>
+          <h2 id="lesson-title">오늘의 25문장</h2>
+          <p>문장을 누르면 해당 구간만 재생됩니다.</p>
+        </div>
+        <span class="counter">약 3분</span>
+      </header>
+
+      <div class="sentences" id="sentences"></div>
+
+      <p class="source">
+        학습 영상: <a href="https://www.youtube.com/watch?v=40ao6UQlx1o" target="_blank" rel="noopener noreferrer">Slow Italian for Beginners – Morning Routine in Easy Italian</a><br>
+        영상과 음성의 저작권은 원저작자에게 있습니다. 이 페이지는 YouTube 임베드 플레이어를 사용합니다.
+      </p>
+    </section>
+  </main>
+
+  <script>
+    const VIDEO_ID = "40ao6UQlx1o";
+    const SENTENCES = [
+      { start: 59.8, end: 72.0, it: "La mattina mi alzo dal letto quando la sveglia inizia a suonare.", ko: "아침에는 알람이 울리기 시작하면 침대에서 일어나요." },
+      { start: 71.8, end: 80.0, it: "Trin, trin, suona la sveglia, io mi alzo.", ko: "따르릉, 따르릉, 알람이 울리고 저는 일어나요." },
+      { start: 79.8, end: 87.0, it: "La mia sveglia suona alle sette di mattina, circa.", ko: "제 알람은 대략 아침 7시에 울려요." },
+      { start: 86.8, end: 92.0, it: "Precisamente suona alle sette e cinque.", ko: "정확히는 7시 5분에 울려요." },
+      { start: 91.8, end: 96.0, it: "Trin, trin. Suona la sveglia.", ko: "따르릉, 따르릉. 알람이 울려요." },
+      { start: 95.8, end: 101.0, it: "Mi alzo e inizio la mia giornata.", ko: "저는 일어나서 하루를 시작해요." },
+      { start: 103.8, end: 115.0, it: "Per prima cosa, dopo essermi alzata, dopo che è suonata la sveglia, vado in bagno.", ko: "먼저, 일어나고 알람이 울린 뒤 화장실로 가요." },
+      { start: 114.8, end: 127.0, it: "La porta del bagno è chiusa, quindi apro la porta ed entro in bagno.", ko: "화장실 문이 닫혀 있어서 문을 열고 안으로 들어가요." },
+      { start: 126.8, end: 135.0, it: "Ma in bagno è buio.", ko: "그런데 화장실 안은 어두워요." },
+      { start: 134.8, end: 138.0, it: "È buio, non c’è luce.", ko: "어두워요. 불빛이 없어요." },
+      { start: 138.8, end: 144.0, it: "Quindi accendo la luce.", ko: "그래서 불을 켜요." },
+      { start: 143.8, end: 147.0, it: "Ecco qui. Ho acceso la luce.", ko: "자, 됐어요. 불을 켰어요." },
+      { start: 148.8, end: 152.0, it: "Mi lavo la faccia.", ko: "세수를 해요." },
+      { start: 151.8, end: 157.0, it: "Apro il rubinetto. Ho aperto il rubinetto.", ko: "수도꼭지를 열어요. 수도꼭지를 열었어요." },
+      { start: 156.8, end: 162.0, it: "E poi mi lavo la faccia.", ko: "그런 다음 세수를 해요." },
+      { start: 161.8, end: 171.0, it: "Mi lavo la faccia con l’acqua fredda, di solito abbastanza fredda.", ko: "보통 꽤 차가운 물로 세수를 해요." },
+      { start: 170.8, end: 173.0, it: "Ma ora la mia faccia è bagnata.", ko: "그런데 이제 제 얼굴이 젖었어요." },
+      { start: 172.8, end: 178.0, it: "Quindi prendo un asciugamano.", ko: "그래서 수건을 하나 집어요." },
+      { start: 177.8, end: 187.0, it: "Prendo un asciugamano e mi asciugo la faccia.", ko: "수건을 집어서 얼굴을 닦아요." },
+      { start: 186.8, end: 190.0, it: "Ora la mia faccia è asciutta.", ko: "이제 얼굴이 말랐어요." },
+      { start: 189.8, end: 198.0, it: "Poi prendo il mio spazzolino, lo spazzolino.", ko: "그다음 제 칫솔을 집어요. 칫솔이에요." },
+      { start: 197.8, end: 202.0, it: "E mi lavo i denti.", ko: "그리고 이를 닦아요." },
+      { start: 201.8, end: 213.0, it: "Mi lavo i denti, ovviamente non solo con lo spazzolino, ma anche con il dentifricio.", ko: "물론 칫솔만이 아니라 치약도 사용해서 이를 닦아요." },
+      { start: 213.8, end: 227.0, it: "Metto il dentifricio sullo spazzolino e poi, con lo spazzolino, mi lavo i denti.", ko: "칫솔에 치약을 묻히고 칫솔로 이를 닦아요." },
+      { start: 226.8, end: 232.0, it: "Ok, mi lavo i denti, poi spengo la luce.", ko: "좋아요, 이를 닦고 불을 꺼요." }
+    ];
+
+    let player;
+    let playerReady = false;
+    let pendingIndex = -1;
+    let activeIndex = -1;
+    let repeatOn = false;
+    let speed = 1;
+    let monitorId;
+
+    const list = document.getElementById("sentences");
+    const nowIt = document.getElementById("now-it");
+    const nowKo = document.getElementById("now-ko");
+    const repeatBtn = document.getElementById("repeat-btn");
+    const speedBtn = document.getElementById("speed-btn");
+    const translationBtn = document.getElementById("translation-btn");
+    const italianBtn = document.getElementById("italian-btn");
+
+    function formatTime(seconds) {
+      const minutes = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60).toString().padStart(2, "0");
+      return `${minutes}:${secs}`;
+    }
+
+    function renderSentences() {
+      const fragment = document.createDocumentFragment();
+      SENTENCES.forEach((item, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "sentence";
+        button.dataset.index = index;
+        button.setAttribute("aria-label", `${index + 1}번 문장 재생: ${item.it}`);
+        button.innerHTML = `
+          <span class="number">${String(index + 1).padStart(2, "0")}</span>
+          <span class="text-wrap">
+            <span class="it">${item.it}</span>
+            <span class="ko">${item.ko}</span>
+          </span>
+          <span class="time">${formatTime(item.start)}</span>`;
+        button.addEventListener("click", () => playSentence(index));
+        fragment.appendChild(button);
+      });
+      list.appendChild(fragment);
+    }
+
+    function setActive(index) {
+      activeIndex = index;
+      document.querySelectorAll(".sentence").forEach((row, rowIndex) => {
+        row.classList.toggle("active", rowIndex === index);
+        row.setAttribute("aria-current", rowIndex === index ? "true" : "false");
+      });
+
+      const item = SENTENCES[index];
+      nowIt.textContent = item.it;
+      nowIt.classList.remove("idle");
+      nowKo.textContent = item.ko;
+    }
+
+    function playSentence(index) {
+      setActive(index);
+      if (!playerReady || !player || typeof player.seekTo !== "function") {
+        pendingIndex = index;
+        return;
+      }
+      pendingIndex = -1;
+      player.setPlaybackRate(speed);
+      player.seekTo(SENTENCES[index].start, true);
+      player.playVideo();
+    }
+
+    function monitorPlayback() {
+      if (activeIndex < 0 || !player || typeof player.getCurrentTime !== "function") return;
+      const item = SENTENCES[activeIndex];
+      const current = player.getCurrentTime();
+      if (current >= item.end - 0.08) {
+        if (repeatOn) {
+          player.seekTo(item.start, true);
+          player.playVideo();
+        } else {
+          player.pauseVideo();
+          player.seekTo(item.end, true);
+        }
+      }
+    }
+
+    window.onYouTubeIframeAPIReady = function () {
+      player = new YT.Player("player", {
+        videoId: VIDEO_ID,
+        playerVars: {
+          playsinline: 1,
+          rel: 0,
+          modestbranding: 1
+        },
+        events: {
+          onReady: () => {
+            playerReady = true;
+            player.setPlaybackRate(speed);
+            monitorId = window.setInterval(monitorPlayback, 100);
+            if (pendingIndex >= 0) playSentence(pendingIndex);
+          }
+        }
+      });
+    };
+
+    repeatBtn.addEventListener("click", () => {
+      repeatOn = !repeatOn;
+      repeatBtn.setAttribute("aria-pressed", String(repeatOn));
+      repeatBtn.textContent = repeatOn ? "↻ 반복 켜짐" : "↻ 반복 꺼짐";
+    });
+
+    speedBtn.addEventListener("click", () => {
+      speed = speed === 1 ? 1.25 : 1;
+      speedBtn.setAttribute("aria-pressed", String(speed === 1.25));
+      speedBtn.textContent = speed === 1.25 ? "속도 1.25×" : "속도 1×";
+      if (player && typeof player.setPlaybackRate === "function") player.setPlaybackRate(speed);
+    });
+
+    translationBtn.addEventListener("click", () => {
+      const hidden = document.body.classList.toggle("translation-off");
+      translationBtn.setAttribute("aria-pressed", String(hidden));
+      translationBtn.textContent = hidden ? "번역 보기" : "번역 가리기";
+    });
+
+    italianBtn.addEventListener("click", () => {
+      const hidden = document.body.classList.toggle("italian-hidden");
+      italianBtn.setAttribute("aria-pressed", String(hidden));
+      italianBtn.textContent = hidden ? "이탈리아어 보기" : "이탈리아어 가리기";
+    });
+
+    renderSentences();
+    const youtubeApi = document.createElement("script");
+    youtubeApi.src = "https://www.youtube.com/iframe_api";
+    document.head.appendChild(youtubeApi);
+
+    window.addEventListener("beforeunload", () => {
+      if (monitorId) window.clearInterval(monitorId);
+    });
+  </script>
+</body>
+</html>
